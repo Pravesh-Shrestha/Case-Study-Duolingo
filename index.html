@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Duolingo Case Study</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --green: #58CC02;
+    --green-dark: #3a8a00;
+    --green-pale: #d7f5b5;
+    --ink: #111;
+    --paper: #f5f0e8;
+    --cream: #faf7f2;
+    --muted: #888070;
+    --accent: #FF4B4B;
+    --accent2: #1CB0F6;
+    --rule: rgba(0,0,0,0.12);
+    --serif: 'Playfair Display', Georgia, serif;
+    --sans: 'DM Sans', sans-serif;
+    --mono: 'DM Mono', monospace;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--cream);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 17px;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* ── NOISE TEXTURE OVERLAY ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.6;
+  }
+
+  /* ── MASTHEAD ── */
+  header {
+    background: var(--ink);
+    color: #fff;
+    padding: 0;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .masthead-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 18px 48px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.4);
+  }
+
+  .masthead-badge {
+    background: var(--green);
+    color: #000;
+    padding: 4px 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    font-size: 10px;
+    border-radius: 2px;
+  }
+
+  .masthead-hero {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    min-height: 520px;
+  }
+
+  .masthead-text {
+    padding: 60px 48px 60px 48px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+    z-index: 2;
+  }
+
+  .masthead-kicker {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--green);
+    margin-bottom: 20px;
+  }
+
+  .masthead-title {
+    font-family: var(--serif);
+    font-size: clamp(42px, 5vw, 72px);
+    font-weight: 900;
+    line-height: 1.0;
+    color: #fff;
+    margin-bottom: 12px;
+  }
+
+  .masthead-title em {
+    font-style: italic;
+    color: var(--green);
+  }
+
+  .masthead-subtitle {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 20px;
+    color: rgba(255,255,255,0.5);
+    margin-bottom: 36px;
+    max-width: 480px;
+  }
+
+  .masthead-meta {
+    display: flex;
+    gap: 32px;
+    flex-wrap: wrap;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: rgba(255,255,255,0.35);
+    text-transform: uppercase;
+  }
+
+  .masthead-visual {
+    background: var(--green);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .masthead-visual::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      45deg,
+      rgba(0,0,0,0.04) 0px,
+      rgba(0,0,0,0.04) 1px,
+      transparent 1px,
+      transparent 12px
+    );
+  }
+
+  .owl-icon {
+    width: 180px;
+    height: 180px;
+    position: relative;
+    z-index: 2;
+    animation: float 4s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-16px); }
+  }
+
+  /* ── PROGRESS BAR DECORATION ── */
+  .section-rule {
+    height: 3px;
+    background: linear-gradient(90deg, var(--green) 0%, var(--accent2) 50%, var(--accent) 100%);
+  }
+
+  /* ── LAYOUT ── */
+  .container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 clamp(20px, 4vw, 32px);
+  }
+
+  /* ── INTRO SECTION ── */
+  .intro-section {
+    padding: 80px 0 60px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 64px;
+    align-items: start;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .intro-lead {
+    font-family: var(--serif);
+    font-size: 24px;
+    line-height: 1.5;
+    font-weight: 400;
+    color: #222;
+  }
+
+  .intro-lead strong {
+    font-weight: 700;
+    color: var(--green-dark);
+  }
+
+  .intro-body {
+    color: #444;
+    font-size: 16px;
+  }
+
+  /* ── PULL QUOTE ── */
+  .pull-quote {
+    margin: 56px 0;
+    padding: 40px 48px;
+    background: var(--ink);
+    color: #fff;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .pull-quote::before {
+    content: '"';
+    position: absolute;
+    top: -20px;
+    left: 24px;
+    font-family: var(--serif);
+    font-size: 220px;
+    color: var(--green);
+    opacity: 0.15;
+    line-height: 1;
+    pointer-events: none;
+  }
+
+  .pull-quote p {
+    font-family: var(--serif);
+    font-size: 26px;
+    font-style: italic;
+    line-height: 1.45;
+    position: relative;
+    z-index: 1;
+  }
+
+  .pull-quote cite {
+    display: block;
+    margin-top: 16px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--green);
+    font-style: normal;
+  }
+
+  /* ── SECTION TITLES ── */
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 20px;
+    margin-bottom: 32px;
+    padding-top: 64px;
+    flex-wrap: wrap;
+  }
+
+  .section-num {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    flex-shrink: 0;
+  }
+
+  .section-title {
+    font-family: var(--serif);
+    font-size: clamp(28px, 3vw, 38px);
+    font-weight: 700;
+    line-height: 1.15;
+    flex: 1;
+    border-bottom: 2px solid var(--green);
+    padding-bottom: 8px;
+  }
+
+  /* ── CARDS GRID ── */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+    margin: 32px 0;
+  }
+
+  .card {
+    background: #fff;
+    border: 1px solid var(--rule);
+    padding: 28px 24px;
+    position: relative;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.08);
+  }
+
+  .card::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--green);
+    transform: scaleX(0);
+    transition: transform 0.2s ease;
+    transform-origin: left;
+  }
+
+  .card:hover::after { transform: scaleX(1); }
+
+  .card-icon {
+    font-size: 28px;
+    margin-bottom: 12px;
+  }
+
+  .card-title {
+    font-family: var(--serif);
+    font-size: 17px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+
+  .card-body {
+    font-size: 14px;
+    color: #555;
+    line-height: 1.6;
+  }
+
+  /* ── STAT ROW ── */
+  .stat-row {
+    display: flex;
+    flex-wrap: wrap;
+    border: 1px solid var(--rule);
+    margin: 40px 0;
+    background: #fff;
+  }
+
+  .stat-item {
+    flex: 1 1 220px;
+    padding: 36px 32px;
+    border-right: 1px solid var(--rule);
+    text-align: center;
+  }
+
+  .stat-item:last-child { border-right: none; }
+
+  .stat-num {
+    font-family: var(--serif);
+    font-size: 52px;
+    font-weight: 900;
+    color: var(--green-dark);
+    line-height: 1;
+    display: block;
+  }
+
+  .stat-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+
+  /* ── ETHICAL ISSUES ── */
+  .ethics-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+    margin: 32px 0;
+  }
+
+  .ethics-card {
+    background: var(--paper);
+    border-left: 4px solid var(--accent);
+    padding: 28px 24px;
+  }
+
+  .ethics-card:nth-child(2) { border-left-color: var(--accent2); }
+  .ethics-card:nth-child(3) { border-left-color: #a855f7; }
+  .ethics-card:nth-child(4) { border-left-color: #f59e0b; }
+
+  .ethics-term {
+    font-family: var(--mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  .ethics-title {
+    font-family: var(--serif);
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+
+  .ethics-body {
+    font-size: 14px;
+    color: #555;
+    line-height: 1.65;
+  }
+
+  /* ── BODY TEXT SECTIONS ── */
+  .prose {
+    max-width: 680px;
+    color: #333;
+    font-size: 16.5px;
+    line-height: 1.78;
+  }
+
+  .prose + .prose {
+    margin-top: 20px;
+  }
+
+  /* ── LIMITATIONS ── */
+  .limitation-list {
+    list-style: none;
+    margin: 32px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .limitation-list li {
+    display: grid;
+    grid-template-columns: 40px 1fr;
+    align-items: start;
+    gap: 16px;
+    padding: 20px 24px;
+    background: #fff;
+    border: 1px solid var(--rule);
+    font-size: 15px;
+    color: #444;
+  }
+
+  .lim-icon {
+    font-size: 20px;
+    padding-top: 2px;
+  }
+
+  /* ── CONCLUSION ── */
+  .conclusion-section {
+    margin: 64px 0 0;
+    padding: 64px 48px;
+    background: var(--ink);
+    color: #fff;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .conclusion-section::before {
+    content: '';
+    position: absolute;
+    top: -80px; right: -80px;
+    width: 340px; height: 340px;
+    background: var(--green);
+    border-radius: 50%;
+    opacity: 0.07;
+  }
+
+  .conclusion-section .section-title {
+    color: #fff;
+    border-bottom-color: var(--green);
+  }
+
+  .conclusion-section .section-num {
+    color: rgba(255,255,255,0.3);
+  }
+
+  .conclusion-section .prose {
+    color: rgba(255,255,255,0.75);
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    background: #000;
+    color: rgba(255,255,255,0.3);
+    padding: 28px 48px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  footer span { color: var(--green); }
+
+  /* ── ANIMATIONS ── */
+  .fade-in {
+    opacity: 0;
+    transform: translateY(24px);
+    animation: fadeUp 0.7s ease forwards;
+  }
+
+  @keyframes fadeUp {
+    to { opacity: 1; transform: none; }
+  }
+
+  .fade-in:nth-child(1) { animation-delay: 0.05s; }
+  .fade-in:nth-child(2) { animation-delay: 0.15s; }
+  .fade-in:nth-child(3) { animation-delay: 0.25s; }
+  .fade-in:nth-child(4) { animation-delay: 0.35s; }
+
+  /* Scroll-triggered reveal via IntersectionObserver */
+  .reveal {
+    opacity: 0;
+    transform: translateY(32px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+
+  .reveal.visible {
+    opacity: 1;
+    transform: none;
+  }
+
+  @media (max-width: 1100px) {
+    .masthead-hero {
+      grid-template-columns: 1fr 280px;
+      min-height: 460px;
+    }
+
+    .masthead-text {
+      padding: 52px 40px;
+    }
+
+    .pull-quote,
+    .conclusion-section {
+      padding-left: 36px;
+      padding-right: 36px;
+    }
+  }
+
+  @media (max-width: 900px) {
+    .masthead-hero {
+      grid-template-columns: 1fr;
+      min-height: auto;
+    }
+
+    .cards {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .masthead-visual {
+      min-height: 260px;
+      padding: 28px 0;
+    }
+
+    .masthead-text {
+      padding: 48px 32px 36px;
+    }
+
+    .intro-section {
+      grid-template-columns: 1fr;
+      gap: 24px;
+      padding: 64px 0 48px;
+    }
+
+    .pull-quote {
+      margin: 44px 0;
+    }
+
+    .conclusion-section {
+      margin-top: 56px;
+      padding-top: 56px;
+      padding-bottom: 56px;
+    }
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 760px) {
+    body {
+      font-size: 16px;
+      line-height: 1.72;
+    }
+
+    .masthead-top {
+      padding: 14px 20px;
+      justify-content: center;
+      text-align: center;
+    }
+
+    .masthead-text {
+      padding: 40px 20px 32px;
+    }
+
+    .masthead-title {
+      font-size: clamp(36px, 10vw, 56px);
+    }
+
+    .masthead-subtitle {
+      font-size: 18px;
+      margin-bottom: 28px;
+    }
+
+    .masthead-meta {
+      gap: 10px 16px;
+    }
+
+    .masthead-visual {
+      min-height: 220px;
+    }
+
+    .cards,
+    .ethics-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .owl-icon {
+      width: 140px;
+      height: 140px;
+    }
+
+    .section-header {
+      gap: 10px;
+      padding-top: 48px;
+      margin-bottom: 24px;
+    }
+
+    .section-title {
+      width: 100%;
+      padding-bottom: 6px;
+    }
+
+    .intro-section {
+      padding: 52px 0 40px;
+    }
+
+    .pull-quote {
+      padding: 28px 22px;
+    }
+
+    .pull-quote p {
+      font-size: 22px;
+    }
+
+    .stat-item {
+      padding: 28px 20px;
+      border-right: none;
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .stat-item:last-child {
+      border-bottom: none;
+    }
+
+    .stat-num {
+      font-size: 42px;
+    }
+
+    .ethics-card,
+    .card,
+    .limitation-list li {
+      padding-left: 20px;
+      padding-right: 20px;
+    }
+
+    .conclusion-section {
+      padding: 44px 22px;
+    }
+
+    footer {
+      flex-direction: column;
+      gap: 8px;
+      text-align: center;
+      padding: 22px 20px;
+    }
+  }
+
+  @media (max-width: 520px) {
+    .masthead-title {
+      font-size: 34px;
+    }
+
+    .masthead-subtitle {
+      font-size: 16px;
+    }
+
+    .intro-lead {
+      font-size: 21px;
+    }
+
+    .pull-quote p {
+      font-size: 20px;
+    }
+
+    .limitation-list li {
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    .lim-icon {
+      padding-top: 0;
+    }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER / MASTHEAD -->
+<header>
+  <div class="masthead-top">
+    <span>Research Analysis · Digital Education</span>
+    <span class="masthead-badge">Case Study</span>
+    <span>Behavioral Engineering in EdTech</span>
+  </div>
+  <div class="masthead-hero">
+    <div class="masthead-text fade-in">
+      <p class="masthead-kicker">Case Study · Global EdTech</p>
+      <h1 class="masthead-title">
+        Duolingo —<br/>
+        A <em>New Way</em><br/>
+        to Build<br/>
+        Learning Habits
+      </h1>
+      <p class="masthead-subtitle">Analysis of a Research-Driven Model for Global Engagement</p>
+      <div class="masthead-meta">
+        <span>Behavioral Engineering</span>
+        <span>·</span>
+        <span>Gamification</span>
+        <span>·</span>
+        <span>EdTech Ethics</span>
+      </div>
+    </div>
+    <div class="masthead-visual">
+      <!-- Simple SVG Owl -->
+      <svg class="owl-icon" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+        <!-- Body -->
+        <ellipse cx="60" cy="72" rx="34" ry="38" fill="#1a6300"/>
+        <!-- Head -->
+        <circle cx="60" cy="42" r="30" fill="#1a6300"/>
+        <!-- Face plate -->
+        <ellipse cx="60" cy="46" rx="20" ry="18" fill="#3a8a00"/>
+        <!-- Eyes -->
+        <circle cx="50" cy="40" r="11" fill="white"/>
+        <circle cx="70" cy="40" r="11" fill="white"/>
+        <circle cx="51" cy="40" r="7" fill="#222"/>
+        <circle cx="71" cy="40" r="7" fill="#222"/>
+        <circle cx="53" cy="38" r="2.5" fill="white"/>
+        <circle cx="73" cy="38" r="2.5" fill="white"/>
+        <!-- Beak -->
+        <polygon points="60,50 53,57 67,57" fill="#ff9f00"/>
+        <!-- Eyebrows -->
+        <rect x="42" y="29" width="14" height="4" rx="2" fill="#1a6300" transform="rotate(-20,49,31)"/>
+        <rect x="64" y="29" width="14" height="4" rx="2" fill="#1a6300" transform="rotate(20,71,31)"/>
+        <!-- Feet -->
+        <g fill="#ff9f00">
+          <rect x="46" y="106" width="8" height="4" rx="2"/>
+          <rect x="40" y="106" width="8" height="4" rx="2" transform="rotate(-20,44,108)"/>
+          <rect x="66" y="106" width="8" height="4" rx="2"/>
+          <rect x="66" y="106" width="8" height="4" rx="2" transform="rotate(20,70,108)"/>
+        </g>
+        <!-- Wings -->
+        <ellipse cx="27" cy="78" rx="12" ry="22" fill="#1a6300" transform="rotate(-15,27,78)"/>
+        <ellipse cx="93" cy="78" rx="12" ry="22" fill="#1a6300" transform="rotate(15,93,78)"/>
+        <!-- Chest pattern -->
+        <ellipse cx="60" cy="82" rx="16" ry="20" fill="#3a8a00" opacity="0.5"/>
+      </svg>
+    </div>
+  </div>
+</header>
+
+<div class="section-rule"></div>
+
+<!-- INTRODUCTION -->
+<div class="container">
+  <div class="intro-section reveal">
+    <p class="intro-lead">
+      Duolingo transformed digital education by proving that a platform succeeds when it <strong>understands and influences user behavior</strong> — not merely delivers content.
+    </p>
+    <p class="intro-body">
+      By moving away from passive teaching and adopting behavioral engineering, the platform treats learning as a daily habit rather than a repetitive task. Through constant feedback and smart design, Duolingo set a global example of how digital spaces can keep users motivated over months or even years.
+    </p>
+  </div>
+
+  <!-- STAT ROW -->
+  <div class="stat-row reveal">
+    <div class="stat-item">
+      <span class="stat-num">500M+</span>
+      <p class="stat-label">Registered Users Worldwide</p>
+    </div>
+    <div class="stat-item">
+      <span class="stat-num">40+</span>
+      <p class="stat-label">Languages Offered</p>
+    </div>
+    <div class="stat-item">
+      <span class="stat-num">½ Life</span>
+      <p class="stat-label">Regression Model Powers Retention</p>
+    </div>
+  </div>
+
+  <!-- PULL QUOTE -->
+  <div class="pull-quote reveal">
+    <p>Digital tools need a strong motivational layer to be truly successful — content alone will never be enough.</p>
+    <cite>— Core Thesis of the Duolingo Research Model</cite>
+  </div>
+
+  <!-- SECTION 1: THE TECHNOLOGY -->
+  <div class="section-header reveal">
+    <span class="section-num">§ 01</span>
+    <h2 class="section-title">The Half-Life Regression Model</h2>
+  </div>
+
+  <p class="prose reveal">
+    The technical backbone of Duolingo's success is the <strong>Half Life Regression model</strong> — a system that tracks every user's progress and predicts exactly when they are likely to forget a concept. Rather than flooding users with reviews, the system surfaces a quick session at the optimal moment: just before memory fades.
+  </p>
+
+  <div class="cards reveal">
+    <div class="card fade-in">
+      <div class="card-icon">🔁</div>
+      <p class="card-title">Daily Streaks</p>
+      <p class="card-body">Research-validated: streaks create commitment continuity. Users who lose a streak feel compelled to restart — driving re-engagement at scale.</p>
+    </div>
+    <div class="card fade-in">
+      <div class="card-icon">⭐</div>
+      <p class="card-title">Experience Points</p>
+      <p class="card-body">XP creates a tangible sense of progress. Data showed XP systems correlated with long-term retention, not just short-term engagement spikes.</p>
+    </div>
+    <div class="card fade-in">
+      <div class="card-icon">🧠</div>
+      <p class="card-title">Iterative Learning</p>
+      <p class="card-body">The system learns from each user's past mistakes. Every session is personalized to the learner's actual gaps — not a generic curriculum.</p>
+    </div>
+  </div>
+
+  <!-- SECTION 2: ETHICAL ISSUES -->
+  <div class="section-header reveal">
+    <span class="section-num">§ 02</span>
+    <h2 class="section-title">Ethical Issues in the Predictive Approach</h2>
+  </div>
+
+  <p class="prose reveal">
+    Even though the model works very well, using data to predict user behavior raises serious ethical questions. Duolingo's architecture concentrates information asymmetrically — the platform knows far more about the user than the user knows about the platform.
+  </p>
+
+  <div class="ethics-grid reveal">
+    <div class="ethics-card">
+      <p class="ethics-term">Issue 01</p>
+      <h3 class="ethics-title">Algorithmic Opacity</h3>
+      <p class="ethics-body">Complex math governs when notifications fire and how rewards are given — but users have no visibility into these decisions. The app holds more power than the person using it.</p>
+    </div>
+    <div class="ethics-card">
+      <p class="ethics-term">Issue 02</p>
+      <h3 class="ethics-title">Reductionism</h3>
+      <p class="ethics-body">Reducing learning to XP and leaderboards risks compulsion — users chasing points rather than genuine understanding. Creativity and critical thought resist quantification.</p>
+    </div>
+    <div class="ethics-card">
+      <p class="ethics-term">Issue 03</p>
+      <h3 class="ethics-title">Data Privacy & Consent</h3>
+      <p class="ethics-body">Apps track response times, login patterns, and behavioral micro-data. The adequacy of user consent for this level of behavioral surveillance remains underexamined.</p>
+    </div>
+    <div class="ethics-card">
+      <p class="ethics-term">Issue 04</p>
+      <h3 class="ethics-title">The Equity Gap</h3>
+      <p class="ethics-body">Sophisticated data systems require significant investment. Large platforms can afford this; smaller organizations cannot. Some users benefit not from better content, but from better technology.</p>
+    </div>
+  </div>
+
+  <!-- SECTION 3: SUCCESS & LIMITATIONS -->
+  <div class="section-header reveal">
+    <span class="section-num">§ 03</span>
+    <h2 class="section-title">Reasons for Success & Limitations</h2>
+  </div>
+
+  <p class="prose reveal">
+    The core success factor is integration: technology experts and educators work in concert at Duolingo. Unlike many platforms where code and pedagogy remain siloed, Duolingo's data informs teaching. The platform finds the <em>sweet spot of difficulty</em> — hard enough to sustain curiosity, easy enough to prevent abandonment.
+  </p>
+
+  <ul class="limitation-list reveal">
+    <li>
+      <span class="lim-icon">🧩</span>
+      <div><strong>Interdisciplinary Collaboration</strong> — When data science meets educational theory, the result is an adaptive system that grows more personal with every interaction.</div>
+    </li>
+    <li>
+      <span class="lim-icon">⚠️</span>
+      <div><strong>Gamification Fatigue</strong> — Repeated exposure to streaks and points can erode novelty. Users who tire of the mechanics may abandon the platform regardless of content quality.</div>
+    </li>
+    <li>
+      <span class="lim-icon">🌐</span>
+      <div><strong>Uncontrollable External Factors</strong> — Distraction, poor connectivity, and life disruptions fall outside any algorithm's purview. No model fully compensates for the real world.</div>
+    </li>
+    <li>
+      <span class="lim-icon">📉</span>
+      <div><strong>Market Saturation</strong> — As gamification spreads across EdTech, differentiation becomes harder. Continuous innovation is required to maintain competitive engagement.</div>
+    </li>
+  </ul>
+</div>
+
+<!-- CONCLUSION -->
+<div class="conclusion-section">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-num">§ 04</span>
+      <h2 class="section-title">Conclusion</h2>
+    </div>
+    <p class="prose reveal">
+      Duolingo is the foremost global example of how research can drive a digital learning tool. Its success is not just about writing good code — it is about understanding how humans learn, forget, and stay motivated. The Half Life Regression model, the streak system, and the gamified XP ladder are not decorative features. They are deliberate behavioral infrastructure built on empirical data.
+    </p>
+    <p class="prose reveal" style="margin-top: 20px;">
+      As technology becomes more embedded in daily life, new systems must be built with fairness and honesty at their core. Duolingo's journey reveals a clear formula: balance smart technology with respect for the user, and a difficult chore becomes a rewarding daily habit. Success in this field demands a deep integration of <strong style="color: var(--green);">data science</strong>, <strong style="color: var(--accent2);">psychology</strong>, and <strong style="color: #f59e0b;">educational theory</strong>.
+    </p>
+  </div>
+</div>
+
+<footer>
+  <span>Duolingo Case Study — Behavioral Engineering in EdTech</span>
+  <span><span>Research Analysis</span> · Digital Learning · Global Engagement</span>
+</footer>
+
+<script>
+  // Scroll-triggered reveal
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        entry.target.style.transitionDelay = '0.05s';
+        entry.target.classList.add('visible');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1 });
+
+  reveals.forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
